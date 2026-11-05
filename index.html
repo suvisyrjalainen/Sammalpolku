@@ -38,6 +38,7 @@
     button:focus-visible { outline: 3px solid #e8c36b; outline-offset: 3px; }
     #restart { width: 100%; margin: 22px 0 12px; padding: 11px 16px; }
     .controls { display: grid; grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(2, 44px); gap: 6px; justify-content: center; margin: 20px 0 10px; }
+    .controls-mobile { display: none; }
     .controls button { font-size: 21px; touch-action: none; user-select: none; }
     [data-dir="up"] { grid-column: 2; }
     [data-dir="left"] { grid-column: 1; grid-row: 2; }
@@ -55,6 +56,10 @@
     #score-form button, #refresh-records { padding: 10px 14px; }
     #mode-link:not([hidden]) { display: block; }
     @media (max-width: 760px) { main { padding: 22px 14px; } header { margin-bottom: 18px; } .layout { grid-template-columns: 1fr; gap: 22px; } aside { max-width: 600px; } .stats { display: flex; gap: 20px; margin: 15px 0; } .stat { flex: 1; gap: 8px; } .badge { padding: 7px 10px; } .board { padding: 8px; } }
+    @media (max-width: 760px) {
+      .controls-mobile { display: grid; grid-template-columns: repeat(3, 54px); grid-template-rows: repeat(2, 48px); margin: 10px 0 0; }
+      .controls-desktop, aside .hint { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -63,6 +68,12 @@
     <div class="layout">
       <section aria-label="Labyrintti">
         <div class="board"><canvas id="game" width="600" height="600" tabindex="0" aria-label="Labyrinttipeli. Liiku nuolinäppäimillä tai WASD-näppäimillä. Kerää tason kaikki kolikot avataksesi oikean alakulman oven.">Selain ei tue Canvasia. Kokeile uudempaa selainta.</canvas></div>
+        <div class="controls controls-mobile" role="group" aria-label="Liikkumispainikkeet">
+          <button type="button" data-dir="up" aria-label="Ylös">↑</button>
+          <button type="button" data-dir="left" aria-label="Vasemmalle">←</button>
+          <button type="button" data-dir="down" aria-label="Alas">↓</button>
+          <button type="button" data-dir="right" aria-label="Oikealle">→</button>
+        </div>
         <div id="status" class="status" role="status" aria-live="polite">Seikkailu alkaa vasemmasta yläkulmasta.</div>
       </section>
       <aside>
@@ -83,7 +94,7 @@
         <div class="legend"><span class="door"></span><span id="door-status">Ovi lukossa – kerää kaikki kolikot</span></div>
         <button id="restart" type="button">Aloita tasolta 1 ↻</button>
         <a id="mode-link" href="?test=1" hidden style="color: #d7e8b1; font-size: 13px; text-align: center; padding: 10px">Testaa tulostaulukkoa: vain 10 × 10</a>
-        <div class="controls" role="group" aria-label="Liikkumispainikkeet">
+        <div class="controls controls-desktop" role="group" aria-label="Liikkumispainikkeet">
           <button type="button" data-dir="up" aria-label="Ylös">↑</button>
           <button type="button" data-dir="left" aria-label="Vasemmalle">←</button>
           <button type="button" data-dir="down" aria-label="Alas">↓</button>
