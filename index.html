@@ -53,7 +53,7 @@
     #score-form { margin: 16px 0; }
     #score-form label { display: block; margin-bottom: 8px; }
     input { font: inherit; color: #eef3e7; background: #101a19; border: 1px solid #63754d; border-radius: 6px; padding: 10px; width: min(100%, 250px); }
-    #score-form button, #refresh-records { padding: 10px 14px; }
+    #score-form button { padding: 10px 14px; }
     #mode-link:not([hidden]) { display: block; }
     @media (max-width: 760px) { main { padding: 22px 14px; } header { margin-bottom: 18px; } .layout { grid-template-columns: 1fr; gap: 22px; } aside { max-width: 600px; } .stats { display: flex; gap: 20px; margin: 15px 0; } .stat { flex: 1; gap: 8px; } .badge { padding: 7px 10px; } .board { padding: 8px; } }
     @media (max-width: 760px) {
@@ -115,7 +115,6 @@
       </form>
       <p id="records-status" role="status" aria-live="polite"></p>
       <table><thead><tr><th scope="col">Sija</th><th scope="col">Pelaaja</th><th scope="col">Kokonaisaika</th></tr></thead><tbody id="records-body"></tbody></table>
-      <button id="refresh-records" type="button" style="margin-top: 14px">Päivitä taulukko</button>
     </section>
     <footer>Oma polku, oma tahti. Ei aikarajaa.</footer>
   </main>
@@ -179,7 +178,7 @@
         recordsStatus.textContent = records.length ? '' : (TEST_MODE ? 'Ei vielä testituloksia. Pelaa 10 × 10 -taso ja tallenna aikasi!' : 'Ei vielä tuloksia. Pelaa kaikki viisi tasoa ja jätä ensimmäinen aika!');
         return true;
       } catch {
-        recordsStatus.textContent = localMode ? 'Selain ei salli tulosten tallentamista tai lukemista.' : 'Ennätystaulukkoa ei voitu ladata. Kokeile Päivitä taulukko -painiketta.';
+        recordsStatus.textContent = localMode ? 'Selain ei salli tulosten tallentamista tai lukemista.' : 'Ennätystaulukkoa ei voitu ladata. Yritä uudelleen lataamalla sivu.';
         return false;
       }
     }
@@ -207,7 +206,6 @@
         scoreSaving = false; document.getElementById('save-score').disabled = false;
       }
     });
-    document.getElementById('refresh-records').addEventListener('click', refreshRecords);
     // Each level has a fixed seed, so restarting gives the same five labyrinths.
     function makeMaze() {
       let seed = 3817 + levelIndex * 997;
