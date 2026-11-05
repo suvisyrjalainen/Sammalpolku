@@ -116,6 +116,7 @@ const { createGameServer } = require('./server.cjs');
   testRun(fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8').match(/<script>([\s\S]*?)<\/script>/)[1]);
   testRun(run('routeTo.toString()'));
   await testRun('refreshRecords()');
+  assert(testElements['mode-link'].hidden);
   testRun(`assert.equal(LEVEL_COUNT,1); assert.equal(SIZE,10); assert.equal(COIN_COUNT,5);
     player = {x:8,y:7}; move('down'); assert(!won); assert.equal(player.y,7);
     player = {x:1,y:1};

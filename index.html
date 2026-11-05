@@ -52,6 +52,7 @@
     #score-form label { display: block; margin-bottom: 8px; }
     input { font: inherit; color: #eef3e7; background: #101a19; border: 1px solid #63754d; border-radius: 6px; padding: 10px; width: min(100%, 250px); }
     #score-form button, #refresh-records { padding: 10px 14px; }
+    #mode-link:not([hidden]) { display: block; }
     @media (max-width: 760px) { main { padding: 22px 14px; } header { margin-bottom: 18px; } .layout { grid-template-columns: 1fr; gap: 22px; } aside { max-width: 600px; } .stats { display: flex; gap: 20px; margin: 15px 0; } .stat { flex: 1; gap: 8px; } .badge { padding: 7px 10px; } .board { padding: 8px; } }
   </style>
 </head>
@@ -80,7 +81,7 @@
         <div class="legend"><span class="dot gold"></span>Kolikko kerättäväksi</div>
         <div class="legend"><span class="door"></span><span id="door-status">Ovi lukossa – kerää kaikki kolikot</span></div>
         <button id="restart" type="button">Aloita tasolta 1 ↻</button>
-        <a id="mode-link" href="?test=1" style="display: block; color: #d7e8b1; font-size: 13px; text-align: center; padding: 10px">Testaa tulostaulukkoa: vain 10 × 10</a>
+        <a id="mode-link" href="?test=1" hidden style="color: #d7e8b1; font-size: 13px; text-align: center; padding: 10px">Testaa tulostaulukkoa: vain 10 × 10</a>
         <div class="controls" role="group" aria-label="Liikkumispainikkeet">
           <button type="button" data-dir="up" aria-label="Ylös">↑</button>
           <button type="button" data-dir="left" aria-label="Vasemmalle">←</button>
@@ -116,7 +117,10 @@
     const directions = { up: [0,-1], down: [0,1], left: [-1,0], right: [1,0] };
     const keys = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right' };
     let maze, player, coins, collected, steps, elapsed, startedAt, won, held = null, nextMove = 0;
-    const localMode = location.protocol === 'file:' || location.hostname?.endsWith('.github.io');
+    const githubPages = location.hostname?.endsWith('.github.io') === true;
+    const localMode = location.protocol === 'file:' || githubPages;
+    const modeLink = document.getElementById('mode-link');
+    modeLink.hidden = githubPages;
     const RECORDS_KEY = TEST_MODE ? 'sammalpolku-test-10-v1' : 'sammalpolku-five-levels-v1';
     const scoresEndpoint = TEST_MODE ? '/api/scores?mode=test' : '/api/scores';
     let scoreSaved = false, scoreSaving = false;
@@ -128,8 +132,8 @@
       document.getElementById('clock-description').textContent = 'Kello mittaa vain tämän 10 × 10 -tason ajan.';
       document.getElementById('records-title').textContent = 'Testitulokset · 10 × 10 – 10 parasta aikaa';
       document.getElementById('score-label').textContent = 'Testitaso läpi! Tallenna testiaikasi nimimerkillä:';
-      document.getElementById('mode-link').href = '?';
-      document.getElementById('mode-link').textContent = 'Takaisin viiden tason peliin';
+      modeLink.href = '?';
+      modeLink.textContent = 'Takaisin viiden tason peliin';
     }
     document.getElementById('records-mode').textContent = (TEST_MODE ? 'Erillinen testitaulukko. ' : '') + (localMode
       ? 'Tämän selaimen tulokset. Pelaajat näkevät omalla selaimellaan tallennetut ajat.'
