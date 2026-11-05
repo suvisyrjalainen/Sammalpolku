@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sammalpolku – pieni labyrinttipeli</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #101a19; color: #eef3e7; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: radial-gradient(ellipse at 50% 10%, #253b32, #101a19 70%); }
+    main { max-width: 1000px; margin: auto; padding: 34px 24px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 24px; }
+    .eyebrow { color: #b3d58d; font-size: 11px; font-weight: 750; letter-spacing: .2em; text-transform: uppercase; }
+    h1 { font-family: Georgia, serif; font-weight: 500; font-size: clamp(32px, 6vw, 46px); margin: 5px 0 0; letter-spacing: -.04em; }
+    .badge { border: 1px solid #53614b; border-radius: 99px; padding: 9px 14px; color: #c9d5bc; font-size: 12px; white-space: nowrap; }
+    .layout { display: grid; grid-template-columns: minmax(0, 630px) 240px; gap: 28px; align-items: start; }
+    .board { padding: 12px; border: 1px solid #465444; background: #19241f; border-radius: 14px; box-shadow: 0 20px 60px #0005; position: relative; }
+    canvas { display: block; width: 100%; height: auto; aspect-ratio: 1; border-radius: 4px; background: #111b18; image-rendering: pixelated; touch-action: none; }
+    canvas:focus-visible { outline: 3px solid #b7da87; outline-offset: 4px; }
+    .status { margin: 14px 3px 0; min-height: 1.5em; font-size: 13px; color: #bdcbb4; }
+    aside { padding-top: 4px; }
+    h2 { font-size: 19px; font-weight: 650; margin: 0 0 12px; }
+    p { color: #b5c2b0; font-size: 14px; line-height: 1.7; }
+    .clock { margin-top: 20px; padding: 16px; border: 1px solid #63754d; border-radius: 10px; background: #263526; }
+    .clock-label { display: block; color: #c9d5bc; font-size: 12px; }
+    #time { display: block; margin: 3px 0; color: #f1e5ac; font-size: 36px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .clock small { color: #b5c2b0; font-size: 11px; line-height: 1.5; display: block; }
+    .stats { margin: 24px 0; border-top: 1px solid #3a493c; }
+    .stat { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #3a493c; font-size: 13px; color: #bdc9b7; }
+    .stat strong { color: #f1e5ac; font-size: 18px; font-variant-numeric: tabular-nums; }
+    .legend { display: flex; align-items: center; gap: 10px; margin: 12px 0; color: #b5c2b0; font-size: 12px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; background: #c7df88; box-shadow: 0 0 10px #b2d27b44; }
+    .dot.gold { background: #f0cb62; }
+    .door { width: 12px; height: 14px; border: 2px solid #ecb476; background: #8f5a33; }
+    button { font: inherit; cursor: pointer; color: #edf2df; background: #2b3c2e; border: 1px solid #5a704d; border-radius: 8px; min-height: 44px; }
+    button:hover { background: #3c5138; }
+    button:focus-visible { outline: 3px solid #e8c36b; outline-offset: 3px; }
+    #restart { width: 100%; margin: 22px 0 12px; padding: 11px 16px; }
+    .controls { display: grid; grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(2, 44px); gap: 6px; justify-content: center; margin: 20px 0 10px; }
+    .controls button { font-size: 21px; touch-action: none; user-select: none; }
+    [data-dir="up"] { grid-column: 2; }
+    [data-dir="left"] { grid-column: 1; grid-row: 2; }
+    [data-dir="down"] { grid-column: 2; grid-row: 2; }
+    [data-dir="right"] { grid-column: 3; grid-row: 2; }
+    .hint { font-size: 12px; text-align: center; color: #98aa95; }
+    footer { margin-top: 20px; color: #80937f; font-size: 11px; letter-spacing: .04em; }
+    .records { margin-top: 28px; padding: 22px; border: 1px solid #465444; border-radius: 14px; background: #19241f; }
+    .records table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .records th, .records td { padding: 10px 6px; text-align: left; border-bottom: 1px solid #3a493c; overflow-wrap: anywhere; }
+    .records th:last-child, .records td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+    #score-form { margin: 16px 0; }
+    #score-form label { display: block; margin-bottom: 8px; }
+    input { font: inherit; color: #eef3e7; background: #101a19; border: 1px solid #63754d; border-radius: 6px; padding: 10px; width: min(100%, 250px); }
+    #score-form button, #refresh-records { padding: 10px 14px; }
+    @media (max-width: 760px) { main { padding: 22px 14px; } header { margin-bottom: 18px; } .layout { grid-template-columns: 1fr; gap: 22px; } aside { max-width: 600px; } .stats { display: flex; gap: 20px; margin: 15px 0; } .stat { flex: 1; gap: 8px; } .badge { padding: 7px 10px; } .board { padding: 8px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header><div><div id="game-subtitle" class="eyebrow">Viiden tason metsäseikkailu</div><h1>Sammalpolku</h1></div><span id="level-badge" class="badge">Taso 1 / 5 · 10 × 10</span></header>
+    <div class="layout">
+      <section aria-label="Labyrintti">
+        <div class="board"><canvas id="game" width="600" height="600" tabindex="0" aria-label="Labyrinttipeli. Liiku nuolinäppäimillä tai WASD-näppäimillä. Kerää tason kaikki kolikot avataksesi oikean alakulman oven.">Selain ei tue Canvasia. Kokeile uudempaa selainta.</canvas></div>
+        <div id="status" class="status" role="status" aria-live="polite">Seikkailu alkaa vasemmasta yläkulmasta.</div>
+      </section>
+      <aside>
+        <div class="eyebrow" style="margin-bottom: 14px">Löydä tiesi ulos</div>
+        <h2>Kivien kätkemä polku</h2>
+        <p id="game-description">Kerää tason kaikki kolikot ja kulje ovesta seuraavaan labyrinttiin. Viisi tasoa kasvaa 10 × 10 ruudusta 30 × 30 ruutuun. Kolikoita on aluksi viisi ja joka tasolla yksi enemmän.</p>
+        <div class="clock">
+          <span class="clock-label">Kokonaisaika</span>
+          <strong id="time" role="timer" aria-label="Kulunut peliaika" aria-live="off">0:00,0</strong>
+          <small id="clock-description">Kello alkaa ensimmäisestä askeleesta ja mittaa kaikkien viiden tason yhteisen ajan.</small>
+        </div>
+        <div class="stats">
+          <div class="stat"><span>Tason kolikot</span><strong id="coins">0 / 5</strong></div>
+          <div class="stat"><span>Askeleet yhteensä</span><strong id="steps">0</strong></div>
+        </div>
+        <div class="legend"><span class="dot"></span>Sinä, pieni kulkija</div>
+        <div class="legend"><span class="dot gold"></span>Kolikko kerättäväksi</div>
+        <div class="legend"><span class="door"></span><span id="door-status">Ovi lukossa – kerää kaikki kolikot</span></div>
+        <button id="restart" type="button">Aloita tasolta 1 ↻</button>
+        <a id="mode-link" href="?test=1" style="display: block; color: #d7e8b1; font-size: 13px; text-align: center; padding: 10px">Testaa tulostaulukkoa: vain 10 × 10</a>
+        <div class="controls" role="group" aria-label="Liikkumispainikkeet">
+          <button type="button" data-dir="up" aria-label="Ylös">↑</button>
+          <button type="button" data-dir="left" aria-label="Vasemmalle">←</button>
+          <button type="button" data-dir="down" aria-label="Alas">↓</button>
+          <button type="button" data-dir="right" aria-label="Oikealle">→</button>
+        </div>
+        <div class="hint">Nuolinäppäimet / WASD<br>Pidä painettuna liikkuaksesi.</div>
+      </aside>
+    </div>
+    <section class="records" aria-labelledby="records-title">
+      <h2 id="records-title">Ennätystaulukko – 10 parasta aikaa</h2>
+      <p id="records-mode"></p>
+      <form id="score-form" hidden>
+        <label id="score-label" for="player-name">Läpäisit kaikki tasot! Tallenna aikasi nimimerkillä:</label>
+        <input id="player-name" name="name" maxlength="24" required autocomplete="nickname" placeholder="Nimimerkki" aria-label="Nimimerkki">
+        <button id="save-score" type="submit">Tallenna aika</button>
+      </form>
+      <p id="records-status" role="status" aria-live="polite"></p>
+      <table><thead><tr><th scope="col">Sija</th><th scope="col">Pelaaja</th><th scope="col">Kokonaisaika</th></tr></thead><tbody id="records-body"></tbody></table>
+      <button id="refresh-records" type="button" style="margin-top: 14px">Päivitä taulukko</button>
+    </section>
+    <footer>Oma polku, oma tahti. Ei aikarajaa.</footer>
+  </main>
+  <script>
+    'use strict';
+    const TEST_MODE = new URLSearchParams(location.search).get('test') === '1';
+    const LEVEL_COUNT = TEST_MODE ? 1 : 5, TILE = 20;
+    let levelIndex, SIZE, COIN_COUNT, exitCell;
+    const canvas = document.getElementById('game'), ctx = canvas.getContext('2d');
+    const statusEl = document.getElementById('status');
+    const coinsEl = document.getElementById('coins'), timeEl = document.getElementById('time');
+    const stepsEl = document.getElementById('steps');
+    const directions = { up: [0,-1], down: [0,1], left: [-1,0], right: [1,0] };
+    const keys = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', w: 'up', s: 'down', a: 'left', d: 'right' };
+    let maze, player, coins, collected, steps, elapsed, startedAt, won, held = null, nextMove = 0;
+    const localMode = location.protocol === 'file:';
+    const RECORDS_KEY = TEST_MODE ? 'sammalpolku-test-10-v1' : 'sammalpolku-five-levels-v1';
+    const scoresEndpoint = TEST_MODE ? '/api/scores?mode=test' : '/api/scores';
+    let scoreSaved = false, scoreSaving = false;
+    const scoreForm = document.getElementById('score-form');
+    const recordsStatus = document.getElementById('records-status');
+    if (TEST_MODE) {
+      document.getElementById('game-subtitle').textContent = 'Testitila · yksi labyrintti';
+      document.getElementById('game-description').textContent = 'Testaa tulostaulukkoa: kerää 10 × 10 -labyrintin viisi kolikkoa ja kulje ovesta. Voit tallentaa ajan heti ensimmäisen tason jälkeen.';
+      document.getElementById('clock-description').textContent = 'Kello mittaa vain tämän 10 × 10 -tason ajan.';
+      document.getElementById('records-title').textContent = 'Testitulokset · 10 × 10 – 10 parasta aikaa';
+      document.getElementById('score-label').textContent = 'Testitaso läpi! Tallenna testiaikasi nimimerkillä:';
+      document.getElementById('mode-link').href = '?';
+      document.getElementById('mode-link').textContent = 'Takaisin viiden tason peliin';
+    }
+    document.getElementById('records-mode').textContent = (TEST_MODE ? 'Erillinen testitaulukko. ' : '') + (localMode
+      ? 'Tämän selaimen tulokset. Yhteinen verkkotaulukko toimii avaamalla pelin palvelimen kautta.'
+      : `Yhteinen ennätystaulukko. Nopein ${TEST_MODE ? '10 × 10 -tason aika' : 'kaikkien viiden tason kokonaisaika'} voittaa. Käytä nimimerkkiä.`);
+    function formatTime(milliseconds) {
+      const tenths = Math.floor(milliseconds / 100);
+      return `${Math.floor(tenths / 600)}:${String(Math.floor(tenths / 10) % 60).padStart(2, '0')},${tenths % 10}`;
+    }
+    async function readRecords() {
+      if (localMode) return JSON.parse(localStorage.getItem(RECORDS_KEY) || '[]');
+      const response = await fetch(scoresEndpoint, { cache: 'no-store' });
+      if (!response.ok) throw new Error('Taulukon lataaminen epäonnistui.');
+      return response.json();
+    }
+    async function refreshRecords() {
+      try {
+        const records = await readRecords();
+        const body = document.getElementById('records-body');
+        body.replaceChildren();
+        records.slice(0, 10).forEach((record, index) => {
+          const row = document.createElement('tr');
+          for (const value of [index + 1, record.name, formatTime(record.timeMs)]) {
+            const cell = document.createElement('td'); cell.textContent = value; row.appendChild(cell);
+          }
+          body.appendChild(row);
+        });
+        recordsStatus.textContent = records.length ? '' : (TEST_MODE ? 'Ei vielä testituloksia. Pelaa 10 × 10 -taso ja tallenna aikasi!' : 'Ei vielä tuloksia. Pelaa kaikki viisi tasoa ja jätä ensimmäinen aika!');
+        return true;
+      } catch {
+        recordsStatus.textContent = localMode ? 'Selain ei salli tulosten tallentamista tai lukemista.' : 'Ennätystaulukkoa ei voitu ladata. Kokeile Päivitä taulukko -painiketta.';
+        return false;
+      }
+    }
+    scoreForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (!won || scoreSaved || scoreSaving) return;
+      const name = document.getElementById('player-name').value.trim();
+      if (!name) { recordsStatus.textContent = 'Kirjoita nimimerkki ensin.'; return; }
+      const record = { name: name.slice(0, 24), timeMs: Math.round(elapsed * 1000) };
+      scoreSaving = true; document.getElementById('save-score').disabled = true;
+      try {
+        if (localMode) {
+          const records = await readRecords();
+          records.push(record); records.sort((a,b) => a.timeMs - b.timeMs);
+          localStorage.setItem(RECORDS_KEY, JSON.stringify(records.slice(0, 10)));
+        } else {
+          const response = await fetch(scoresEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(record) });
+          if (!response.ok) throw new Error('Tallennus epäonnistui');
+        }
+        scoreSaved = true; scoreForm.hidden = true;
+        if (await refreshRecords()) recordsStatus.textContent = 'Aikasi tallennettiin! Taulukossa näkyvät 10 nopeinta suoritusta.';
+      } catch {
+        recordsStatus.textContent = 'Aikaa ei voitu tallentaa. Voit yrittää uudelleen.';
+      } finally {
+        scoreSaving = false; document.getElementById('save-score').disabled = false;
+      }
+    });
+    document.getElementById('refresh-records').addEventListener('click', refreshRecords);
+    // Each level has a fixed seed, so restarting gives the same five labyrinths.
+    function makeMaze() {
+      let seed = 3817 + levelIndex * 997;
+      function random() { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; }
+      const grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(1));
+      const stack = [[1,1]];
+      grid[1][1] = 0;
+      while (stack.length) {
+        const [x,y] = stack[stack.length - 1];
+        const options = Object.values(directions).filter(([dx,dy]) => {
+          const nx = x + dx * 2, ny = y + dy * 2;
+          return nx > 0 && ny > 0 && nx < SIZE - 1 && ny < SIZE - 1 && grid[ny][nx] === 1
+            && !(nx === exitCell.x && ny === exitCell.y);
+        });
+        if (!options.length) { stack.pop(); continue; }
+        const [dx,dy] = options[Math.floor(random() * options.length)];
+        grid[y + dy][x + dx] = 0;
+        grid[y + dy * 2][x + dx * 2] = 0;
+        stack.push([x + dx * 2, y + dy * 2]);
+      }
+      // Give the door one entrance, so a locked door cannot block access to coins.
+      if (SIZE % 2 === 0) grid[SIZE - 3][SIZE - 2] = 0;
+      else grid[SIZE - 2][SIZE - 3] = 0;
+      grid[exitCell.y][exitCell.x] = 0;
+      const available = [];
+      for (let y = 1; y < SIZE - 1; y += 2) for (let x = 1; x < SIZE - 1; x += 2) {
+        if ((x !== 1 || y !== 1) && !(x === exitCell.x && y === exitCell.y)) available.push([x,y]);
+      }
+      for (let i = available.length - 1; i > 0; i--) {
+        const j = Math.floor(random() * (i + 1));
+        [available[i],available[j]] = [available[j],available[i]];
+      }
+      return { grid, coins: new Set(available.slice(0, COIN_COUNT).map(([x,y]) => `${x},${y}`)) };
+    }
+    function reset() {
+      if (scoreSaving) return;
+      scoreSaved = false; scoreForm.hidden = true;
+      steps = elapsed = 0; startedAt = null; won = false;
+      loadLevel(0);
+    }
+    function loadLevel(index) {
+      levelIndex = index; SIZE = 10 + index * 5; COIN_COUNT = 5 + index;
+      exitCell = { x: SIZE - 2, y: SIZE - 2 };
+      const level = makeMaze();
+      maze = level.grid; coins = level.coins; player = { x: 1, y: 1 };
+      collected = 0; held = null;
+      document.getElementById('level-badge').textContent = `Taso ${index + 1} / ${LEVEL_COUNT} · ${SIZE} × ${SIZE}`;
+      statusEl.textContent = `Taso ${index + 1} / ${LEVEL_COUNT}: ${SIZE} × ${SIZE} ruutua. Kerää ${COIN_COUNT} kolikkoa avataksesi oven.`;
+      updateStats(); draw();
+    }
+    function updateStats() {
+      coinsEl.textContent = `${collected} / ${COIN_COUNT}`;
+      document.getElementById('door-status').textContent = collected === COIN_COUNT ? (levelIndex < LEVEL_COUNT - 1 ? 'Ovi auki – seuraavalle tasolle!' : 'Ovi on auki – pääset ulos!') : 'Ovi lukossa – kerää kaikki kolikot';
+      stepsEl.textContent = steps;
+      const tenths = Math.floor(elapsed * 10);
+      const seconds = Math.floor(tenths / 10);
+      timeEl.textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')},${tenths % 10}`;
+    }
+    function updateClock() {
+      if (startedAt !== null && !won) elapsed = (performance.now() - startedAt) / 1000;
+    }
+    function move(direction) {
+      if (won) return;
+      const [dx,dy] = directions[direction];
+      const x = player.x + dx, y = player.y + dy;
+      if (x < 0 || y < 0 || x >= SIZE || y >= SIZE || maze[y][x]) return;
+      if (x === exitCell.x && y === exitCell.y && collected < COIN_COUNT) {
+        statusEl.textContent = `Ovi on lukossa! Kerää vielä ${COIN_COUNT - collected} kolikkoa, niin ovi avautuu.`;
+        return;
+      }
+      if (startedAt === null) startedAt = performance.now();
+      player = { x,y }; steps++;
+      if (coins.delete(`${x},${y}`)) {
+        collected++;
+        statusEl.textContent = collected === COIN_COUNT ? 'Kaikki kolikot löytyivät! Ovi on nyt auki – etsi uloskäynti.' : `Löysit kolikon! Kerätty ${collected} / ${COIN_COUNT}.`;
+      }
+      if (x === exitCell.x && y === exitCell.y && collected === COIN_COUNT) {
+        updateClock(); updateStats();
+        if (levelIndex < LEVEL_COUNT - 1) {
+          loadLevel(levelIndex + 1);
+          return;
+        }
+        won = true; held = null;
+        scoreForm.hidden = false;
+        statusEl.textContent = TEST_MODE
+          ? `Testitaso läpi ajassa ${timeEl.textContent}! Voit nyt tallentaa ajan erilliseen testitaulukkoon pelin alapuolella.`
+          : `Läpäisit kaikki viisi tasoa ajassa ${timeEl.textContent}! Keräsit 35 kolikkoa. Askeleet yhteensä: ${steps}. Pelaa uudelleen Aloita tasolta 1 -painikkeella.`;
+      }
+      updateStats(); draw();
+    }
+    function draw() {
+      ctx.clearRect(0, 0, 600, 600);
+      ctx.save();
+      ctx.scale(600 / (SIZE * TILE), 600 / (SIZE * TILE));
+      for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
+        const px = x * TILE, py = y * TILE;
+        if (maze[y][x]) {
+          const shade = (x * 7 + y * 11) % 3;
+          ctx.fillStyle = ['#4a564b','#505b4e','#465247'][shade]; ctx.fillRect(px,py,20,20);
+          ctx.fillStyle = '#6b75624d'; ctx.fillRect(px+1,py+1,18,2); ctx.fillRect(px+1,py+1,2,17);
+          ctx.fillStyle = '#1c2a2580'; ctx.fillRect(px,py+18,20,2); ctx.fillRect(px+18,py,2,20);
+          if ((x * 3 + y * 7) % 13 === 0) { ctx.fillStyle = '#7c965e'; ctx.fillRect(px+3,py+3,5,2); }
+        } else {
+          ctx.fillStyle = (x+y) % 2 ? '#17251f' : '#192820'; ctx.fillRect(px,py,20,20);
+          ctx.fillStyle = '#354532'; ctx.fillRect(px+5,py+14,2,1);
+        }
+      }
+      const ex = exitCell.x * TILE, ey = exitCell.y * TILE;
+      const doorOpen = collected === COIN_COUNT;
+      ctx.fillStyle = doorOpen ? '#c3df87' : '#efc18a'; ctx.fillRect(ex+2,ey+1,16,19);
+      ctx.fillStyle = doorOpen ? '#101e17' : '#764e31'; ctx.fillRect(ex+5,ey+4,10,16);
+      if (doorOpen) {
+        ctx.fillStyle = '#c3df87'; ctx.fillRect(ex+8,ey+10,4,2); ctx.fillRect(ex+10,ey+8,2,6);
+      } else {
+        ctx.fillStyle = '#b98a51'; ctx.fillRect(ex+7,ey+5,2,14);
+        ctx.strokeStyle = '#ffdd8a'; ctx.lineWidth = 2; ctx.strokeRect(ex+8,ey+7,4,5);
+        ctx.fillStyle = '#ffdd8a'; ctx.fillRect(ex+7,ey+10,6,5);
+      }
+      for (const coin of coins) {
+        const [x,y] = coin.split(',').map(Number);
+        ctx.fillStyle = '#79602b'; ctx.beginPath(); ctx.arc(x*TILE+10,y*TILE+11,6,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#f0ce62'; ctx.beginPath(); ctx.arc(x*TILE+10,y*TILE+9,5,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#fff1ab'; ctx.fillRect(x*TILE+9,y*TILE+6,2,6);
+      }
+      const px = player.x * TILE, py = player.y * TILE;
+      ctx.fillStyle = '#0006'; ctx.beginPath(); ctx.ellipse(px+10,py+16,7,3,0,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#759d4c'; ctx.fillRect(px+4,py+5,12,12);
+      ctx.fillStyle = '#c3df87'; ctx.fillRect(px+4,py+3,12,10);
+      ctx.fillStyle = '#e5efb6'; ctx.fillRect(px+5,py+3,9,2);
+      ctx.fillStyle = '#203827'; ctx.fillRect(px+7,py+7,2,3); ctx.fillRect(px+12,py+7,2,3);
+      ctx.fillStyle = '#a2c16d'; ctx.fillRect(px+4,py+17,4,2); ctx.fillRect(px+12,py+17,4,2);
+      ctx.restore();
+      if (won) {
+        ctx.fillStyle = '#0b1718c9'; ctx.fillRect(0,0,600,600);
+        ctx.textAlign = 'center'; ctx.fillStyle = '#d7e8b1'; ctx.font = 'bold 34px system-ui'; ctx.fillText(TEST_MODE ? 'Testitaso läpi!' : 'Kaikki viisi tasoa läpi!',300,272);
+        ctx.fillStyle = '#e9d294'; ctx.font = '18px system-ui'; ctx.fillText(`${TEST_MODE ? 5 : 35} kolikkoa  ·  Kokonaisaika ${timeEl.textContent}`,300,311);
+        ctx.fillStyle = '#c0cdb8'; ctx.font = '15px system-ui'; ctx.fillText('Uusi yritys: Aloita tasolta 1',300,345);
+      }
+    }
+    function beginHold(direction) { held = direction; move(direction); nextMove = performance.now() + 160; }
+    window.addEventListener('keydown', event => {
+      if (event.ctrlKey || event.altKey || event.metaKey || event.target.closest('button, input, textarea, select')) return;
+      const direction = keys[event.key] || keys[event.key.toLowerCase()];
+      if (!direction) return;
+      event.preventDefault();
+      if (!event.repeat) beginHold(direction);
+    });
+    window.addEventListener('keyup', event => {
+      if ((keys[event.key] || keys[event.key.toLowerCase()]) === held) held = null;
+    });
+    window.addEventListener('blur', () => { held = null; });
+    document.addEventListener('visibilitychange', () => { held = null; });
+    document.querySelectorAll('[data-dir]').forEach(button => {
+      button.addEventListener('pointerdown', event => {
+        event.preventDefault(); button.setPointerCapture(event.pointerId); beginHold(button.dataset.dir);
+      });
+      button.addEventListener('pointerup', () => { held = null; });
+      button.addEventListener('pointercancel', () => { held = null; });
+      button.addEventListener('lostpointercapture', () => { held = null; });
+      button.addEventListener('click', event => { if (event.detail === 0) move(button.dataset.dir); });
+    });
+    document.getElementById('restart').addEventListener('click', () => { reset(); canvas.focus({ preventScroll: true }); });
+    function frame(now) {
+      if (startedAt !== null && !won) { updateClock(); updateStats(); }
+      if (held && now >= nextMove) { move(held); nextMove = now + 115; }
+      requestAnimationFrame(frame);
+    }
+    reset(); refreshRecords(); requestAnimationFrame(frame);
+  </script>
+</body>
+</html>
