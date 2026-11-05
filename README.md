@@ -2,6 +2,9 @@
 
 Viisi labyrinttiä, 35 kolikkoa ja ennätystaulukko kaikkien tasojen kokonaisajoille.
 
+Pelaa selaimessa [GitHub Pagesissa](https://suvisyrjalainen.github.io/Sammalpolku/).
+Pages-versiossa ennätykset tallentuvat pelaajan omaan selaimeen.
+
 ## Pelaaminen tiedostosta
 
 Avaa `index.html` selaimessa. Peli ei tarvitse asennuksia tai verkkoyhteyttä.

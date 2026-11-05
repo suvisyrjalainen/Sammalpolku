@@ -109,7 +109,7 @@ const { createGameServer } = require('./server.cjs');
   console.log('PASS: five levels, victory score form, local saving, safe names, duplicate prevention, restart.');
 
   const testElements = {};
-  const testEnvironment = { ...environment, location: { protocol: 'file:', search: '?test=1' },
+  const testEnvironment = { ...environment, location: { protocol: 'https:', hostname: 'suvisyrjalainen.github.io', search: '?test=1' },
     document: { ...environment.document, getElementById: id => testElements[id] ||= element() } };
   vm.createContext(testEnvironment);
   const testRun = code => vm.runInContext(code, testEnvironment);
@@ -131,5 +131,5 @@ const { createGameServer } = require('./server.cjs');
   assert.equal(JSON.parse(storage.get('sammalpolku-test-10-v1'))[0].name, 'Pikatesti');
   assert.equal(JSON.parse(storage.get('sammalpolku-five-levels-v1')).length, 1);
   testRun('reset(); assert(!won); assert.equal(SIZE,10); assert.equal(elapsed,0); assert(scoreForm.hidden);');
-  console.log('PASS: single 10x10 test level, locked door, immediate victory, timer stop, separate local and server test records.');
+  console.log('PASS: GitHub Pages test mode, locked door, immediate victory, timer stop, separate browser and server test records.');
 })().catch(error => { console.error(error); process.exitCode = 1; });
