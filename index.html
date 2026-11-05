@@ -66,7 +66,7 @@
 </head>
 <body>
   <main>
-    <header><div><div id="game-subtitle" class="eyebrow">Viiden tason metsäseikkailu</div><h1>Sammalpolku</h1></div><span id="level-badge" class="badge">Taso 1 / 5 · 10 × 10</span></header>
+    <header><div><div id="game-subtitle" class="eyebrow">Viiden tason labyrinttiseikkailu</div><h1>Sammalpolku</h1></div><span id="level-badge" class="badge">Taso 1 / 5 · 10 × 10</span></header>
     <div class="layout">
       <section aria-label="Labyrintti">
         <div class="board"><canvas id="game" width="600" height="600" tabindex="0" aria-label="Labyrinttipeli. Liiku nuolinäppäimillä tai WASD-näppäimillä. Kerää tason kaikki kolikot avataksesi oikean alakulman oven.">Selain ei tue Canvasia. Kokeile uudempaa selainta.</canvas></div>
@@ -149,9 +149,11 @@
       modeLink.href = '?';
       modeLink.textContent = 'Takaisin viiden tason peliin';
     }
-    document.getElementById('records-mode').textContent = (TEST_MODE ? 'Erillinen testitaulukko. ' : '') + (localMode
-      ? 'Tämän selaimen tulokset. Pelaajat näkevät omalla selaimellaan tallennetut ajat.'
+    const recordsMode = document.getElementById('records-mode');
+    recordsMode.textContent = (TEST_MODE ? 'Erillinen testitaulukko. ' : '') + (localMode
+      ? ''
       : `Yhteinen ennätystaulukko. Nopein ${TEST_MODE ? '10 × 10 -tason aika' : 'kaikkien viiden tason kokonaisaika'} voittaa. Käytä nimimerkkiä.`);
+    recordsMode.hidden = !recordsMode.textContent;
     function formatTime(milliseconds) {
       const tenths = Math.floor(milliseconds / 100);
       return `${Math.floor(tenths / 600)}:${String(Math.floor(tenths / 10) % 60).padStart(2, '0')},${tenths % 10}`;
