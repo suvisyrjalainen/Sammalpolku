@@ -57,7 +57,9 @@
     #mode-link:not([hidden]) { display: block; }
     @media (max-width: 760px) { main { padding: 22px 14px; } header { margin-bottom: 18px; } .layout { grid-template-columns: 1fr; gap: 22px; } aside { max-width: 600px; } .stats { display: flex; gap: 20px; margin: 15px 0; } .stat { flex: 1; gap: 8px; } .badge { padding: 7px 10px; } .board { padding: 8px; } }
     @media (max-width: 760px) {
-      .controls-mobile { display: grid; grid-template-columns: repeat(3, 54px); grid-template-rows: repeat(2, 48px); margin: 10px 0 0; }
+      .controls-mobile { display: grid; grid-template-columns: repeat(3, 72px); grid-template-rows: repeat(2, 64px); gap: 12px; margin: 10px 0 0; }
+      .controls-mobile button { font-size: 28px; }
+      .controls-mobile + .status { margin-top: 24px; }
       .controls-desktop, aside .hint { display: none; }
     }
   </style>
